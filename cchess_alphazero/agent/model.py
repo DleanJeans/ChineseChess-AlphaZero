@@ -4,14 +4,15 @@ import os
 from logging import getLogger
 
 import tensorflow as tf
+import tensorflow.contrib.tpu as tpu
 
-from keras.engine.topology import Input
-from keras.engine.training import Model
-from keras.layers.convolutional import Conv2D
-from keras.layers.core import Activation, Dense, Flatten
-from keras.layers.merge import Add
-from keras.layers.normalization import BatchNormalization
-from keras.regularizers import l2
+# from keras.models import Model
+# from keras.layers import Input, Conv2D, Activation, Dense, Flatten, Add, BatchNormalization
+# from keras.regularizers import l2
+
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, Activation, Dense, Flatten, Add, BatchNormalization
+from tensorflow.keras.regularizers import l2
 
 from cchess_alphazero.agent.api import CChessModelAPI
 from cchess_alphazero.config import Config
@@ -97,6 +98,14 @@ class CChessModel:
             logger.debug(f"loading model from {config_path}")
             with open(config_path, "rt") as f:
                 self.model = Model.from_config(json.load(f))
+
+                TPU_ADDRESS = 'grpc://' + os.environ['COLAB_TPU_ADDR']
+                resolver = tf.contrib.cluster_resolver.TPUClusterResolver(TPU_ADDRESS)
+                tf.contrib.distribute.initialize_tpu_system(resolver)
+                strategy = tpu.TPUDistributionStrategy(resolver)
+                
+                self.model = tpu.keras_to_tpu_model(self.model, strategy=strategy)
+                
             self.model.load_weights(weight_path)
             self.digest = self.fetch_digest(weight_path)
             self.graph = tf.get_default_graph()
