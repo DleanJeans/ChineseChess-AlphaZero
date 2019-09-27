@@ -13,6 +13,9 @@ from cchess_alphazero.environment.lookup_tables import Winner, ActionLabelsRed, 
 from cchess_alphazero.lib.model_helper import load_best_model_weight
 from cchess_alphazero.lib.tf_util import set_session_config
 
+from termcolor import colored
+from copy import copy
+
 logger = getLogger(__name__)
 
 def start(config: Config, human_move_first=True):
@@ -42,6 +45,7 @@ class PlayWithHuman:
         self.ai = CChessPlayer(self.config, search_tree=defaultdict(VisitState), pipes=self.pipe,
                               enable_resign=True, debugging=False)
         self.human_move_first = human_first
+        self.env.board.upside_down = human_first
 
         labels = ActionLabelsRed
         labels_n = len(ActionLabelsRed)
@@ -55,36 +59,65 @@ class PlayWithHuman:
                 is_correct_position = False
                 chessman = None
                 while not is_correct_chessman:
-                    title = "请输入棋子位置: "
+                    title = "Enter piece position: "
                     input_chessman_pos = input(title)
-                    x, y = int(input_chessman_pos[0]), int(input_chessman_pos[1])
+                    a = map(int, input_chessman_pos)
+                    mx = my = None
+                    if len(input_chessman_pos) == 2:
+                        x, y = a
+                    elif len(input_chessman_pos) == 4:
+                        x, y, mx, my = a
+                    
                     chessman = self.env.board.chessmans[x][y]
                     if chessman != None and chessman.is_red == self.env.board.is_red_turn:
+                        piece_name = colored(f'{x}{chessman.name_cn}{y}', chessman.color)
+
+                        print(f"Holding piece {piece_name} ", end="")
+                        if not chessman.moving_list:
+                            print("with no possible moves.")
+                            continue
+                        
+                        print("with possible moves: ", end="")
+                        print(" ".join(map(str, chessman.moving_list)))
+                        
                         is_correct_chessman = True
-                        print(f"当前棋子为{chessman.name_cn}，可以落子的位置有：")
-                        for point in chessman.moving_list:
-                            print(point.x, point.y)
                     else:
-                        print("没有找到此名字的棋子或未轮到此方走子")
+                        print(f"No piece found at position {x} {y}")
                 while not is_correct_position:
-                    title = "请输入落子的位置: "
-                    input_chessman_pos = input(title)
-                    x, y = int(input_chessman_pos[0]), int(input_chessman_pos[1])
+                    if len(chessman.moving_list) == 1:
+                        point = input_chessman_pos = chessman.moving_list[0]
+                        print(f"Auto moved to ({point.x} {point.y})")
+                        x, y = point.x, point.y
+                    elif mx and my:
+                        x, y = mx, my
+                    else:
+                        self.env.board.print_to_cl(holding_chessman=chessman)
+                        title = "Enter move position: "
+                        input_chessman_pos = input(title)
+                        x, y = map(int, input_chessman_pos)
+
+                    self.env.board.recent_position = copy(chessman.position)
+                    self.env.board.recent_chessman = chessman
+
                     is_correct_position = chessman.move(x, y)
                     if is_correct_position:
                         self.env.board.print_to_cl()
                         self.env.board.clear_chessmans_moving_list()
             else:
+                wait_text = "Waiting for AI move..."
+                print(wait_text)
                 action, policy = self.ai.action(self.env.get_state(), self.env.num_halfmoves)
+                print('\b' * (len(wait_text) + 1), end="")
                 if not self.env.red_to_move:
                     action = flip_move(action)
                 if action is None:
-                    print("AI投降了!")
+                    print("AI surrendered!")
                     break
+                
                 self.env.step(action)
-                print(f"AI选择移动 {action}")
+                print(f"AI decided to move {action}")
                 self.env.board.print_to_cl()
 
         self.ai.close()
-        print(f"胜者是 is {self.env.board.winner} !!!")
+        print(f"The winner is {self.env.board.winner} !!!")
         self.env.board.print_record()

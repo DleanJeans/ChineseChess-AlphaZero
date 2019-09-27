@@ -5,6 +5,8 @@ from cchess_alphazero.environment.chessman import *
 
 from cchess_alphazero.lib.logger import getLogger
 
+from termcolor import colored
+
 logger = getLogger(__name__)
 
 class Chessboard(object):
@@ -45,87 +47,91 @@ class Chessboard(object):
         return self.__screen
 
     def init_board(self):
-        red_rook_left = Rook(u" 车l红 ", "red_rook_left", True, self, 'R')
+        self.upside_down = False
+        self.recent_position = Point(-1, -1)
+        self.recent_chessman = None
+
+        red_rook_left = Rook(u"车", "red_rook_left", True, self, 'R')
         red_rook_left.add_to_board(0, 0)
-        red_rook_right = Rook(u" 车r红 ", "red_rook_right", True, self, 'R')
+        red_rook_right = Rook(u"车", "red_rook_right", True, self, 'R')
         red_rook_right.add_to_board(8, 0)
         black_rook_left = Rook(
-            u" 车l黑 ", "black_rook_left", False, self, 'r')
+            u"车", "black_rook_left", False, self, 'r')
         black_rook_left.add_to_board(0, 9)
         black_rook_right = Rook(
-            u" 车r黑 ", "black_rook_right", False, self, 'r')
+            u"车", "black_rook_right", False, self, 'r')
         black_rook_right.add_to_board(8, 9)
         red_knight_left = Knight(
-            u" 马l红 ", "red_knight_left", True, self, 'K')
+            u"马", "red_knight_left", True, self, 'K')
         red_knight_left.add_to_board(1, 0)
         red_knight_right = Knight(
-            u" 马r红 ", "red_knight_right", True, self, 'K')
+            u"马", "red_knight_right", True, self, 'K')
         red_knight_right.add_to_board(7, 0)
         black_knight_left = Knight(
-            u" 马l黑 ", "black_knight_left", False, self, 'k')
+            u"马", "black_knight_left", False, self, 'k')
         black_knight_left.add_to_board(1, 9)
         black_knight_right = Knight(
-            u" 马r黑 ", "black_knight_right", False, self, 'k')
+            u"马", "black_knight_right", False, self, 'k')
         black_knight_right.add_to_board(7, 9)
         red_cannon_left = Cannon(
-            u" 炮l红 ", "red_cannon_left", True, self, 'C')
+            u"炮", "red_cannon_left", True, self, 'C')
         red_cannon_left.add_to_board(1, 2)
         red_cannon_right = Cannon(
-            u" 炮r红 ", "red_cannon_right", True, self, 'C')
+            u"炮", "red_cannon_right", True, self, 'C')
         red_cannon_right.add_to_board(7, 2)
         black_cannon_left = Cannon(
-            u" 炮l黑 ", "black_cannon_left", False, self, 'c')
+            u"炮", "black_cannon_left", False, self, 'c')
         black_cannon_left.add_to_board(1, 7)
         black_cannon_right = Cannon(
-            u" 炮r黑 ", "black_cannon_right", False, self, 'c')
+            u"炮", "black_cannon_right", False, self, 'c')
         black_cannon_right.add_to_board(7, 7)
         red_elephant_left = Elephant(
-            u" 相l红 ", "red_elephant_left", True, self, 'E')
+            u"相", "red_elephant_left", True, self, 'E')
         red_elephant_left.add_to_board(2, 0)
         red_elephant_right = Elephant(
-            u" 相r红 ", "red_elephant_right", True, self, 'E')
+            u"相", "red_elephant_right", True, self, 'E')
         red_elephant_right.add_to_board(6, 0)
         black_elephant_left = Elephant(
-            u" 象l黑 ", "black_elephant_left", False, self, 'e')
+            u"象", "black_elephant_left", False, self, 'e')
         black_elephant_left.add_to_board(2, 9)
         black_elephant_right = Elephant(
-            u" 象r黑 ", "black_elephant_right", False, self, 'e')
+            u"象", "black_elephant_right", False, self, 'e')
         black_elephant_right.add_to_board(6, 9)
         red_mandarin_left = Mandarin(
-            u" 仕l红 ", "red_mandarin_left", True, self, 'M')
+            u"仕", "red_mandarin_left", True, self, 'M')
         red_mandarin_left.add_to_board(3, 0)
         red_mandarin_right = Mandarin(
-            u" 仕r红 ", "red_mandarin_right", True, self, 'M')
+            u"仕", "red_mandarin_right", True, self, 'M')
         red_mandarin_right.add_to_board(5, 0)
         black_mandarin_left = Mandarin(
-            u" 仕l黑 ", "black_mandarin_left", False, self, 'm')
+            u"仕", "black_mandarin_left", False, self, 'm')
         black_mandarin_left.add_to_board(3, 9)
         black_mandarin_right = Mandarin(
-            u" 仕r黑 ", "black_mandarin_right", False, self, 'm')
+            u"仕", "black_mandarin_right", False, self, 'm')
         black_mandarin_right.add_to_board(5, 9)
-        red_king = King(u" 帅 红 ", "red_king", True, self, 'S')
+        red_king = King(u"帅", "red_king", True, self, 'S')
         red_king.add_to_board(4, 0)
-        black_king = King(u" 将 黑 ", "black_king", False, self, 's')
+        black_king = King(u"将", "black_king", False, self, 's')
         black_king.add_to_board(4, 9)
-        red_pawn_1 = Pawn(u" 兵1红 ", "red_pawn_1", True, self, 'P')
+        red_pawn_1 = Pawn(u"兵", "red_pawn_1", True, self, 'P')
         red_pawn_1.add_to_board(0, 3)
-        red_pawn_2 = Pawn(u" 兵2红 ", "red_pawn_2", True, self, 'P')
+        red_pawn_2 = Pawn(u"兵", "red_pawn_2", True, self, 'P')
         red_pawn_2.add_to_board(2, 3)
-        red_pawn_3 = Pawn(u" 兵3红 ", "red_pawn_3", True, self, 'P')
+        red_pawn_3 = Pawn(u"兵", "red_pawn_3", True, self, 'P')
         red_pawn_3.add_to_board(4, 3)
-        red_pawn_4 = Pawn(u" 兵4红 ", "red_pawn_4", True, self, 'P')
+        red_pawn_4 = Pawn(u"兵", "red_pawn_4", True, self, 'P')
         red_pawn_4.add_to_board(6, 3)
-        red_pawn_5 = Pawn(u" 兵5红 ", "red_pawn_5", True, self, 'P')
+        red_pawn_5 = Pawn(u"兵", "red_pawn_5", True, self, 'P')
         red_pawn_5.add_to_board(8, 3)
-        black_pawn_1 = Pawn(u" 卒1黑 ", "black_pawn_1", False, self, 'p')
+        black_pawn_1 = Pawn(u"卒", "black_pawn_1", False, self, 'p')
         black_pawn_1.add_to_board(0, 6)
-        black_pawn_2 = Pawn(u" 卒2黑 ", "black_pawn_2", False, self, 'p')
+        black_pawn_2 = Pawn(u"卒", "black_pawn_2", False, self, 'p')
         black_pawn_2.add_to_board(2, 6)
-        black_pawn_3 = Pawn(u" 卒3黑 ", "black_pawn_3", False, self, 'p')
+        black_pawn_3 = Pawn(u"卒", "black_pawn_3", False, self, 'p')
         black_pawn_3.add_to_board(4, 6)
-        black_pawn_4 = Pawn(u" 卒4黑 ", "black_pawn_4", False, self, 'p')
+        black_pawn_4 = Pawn(u"卒", "black_pawn_4", False, self, 'p')
         black_pawn_4.add_to_board(6, 6)
-        black_pawn_5 = Pawn(u" 卒5黑 ", "black_pawn_5", False, self, 'p')
+        black_pawn_5 = Pawn(u"卒", "black_pawn_5", False, self, 'p')
         black_pawn_5.add_to_board(8, 6)
         self.calc_chessmans_moving_list()
 
@@ -177,6 +183,8 @@ class Chessboard(object):
         chessman = self.chessmans[x0][y0]
         if chessman == None:
             return False
+        self.recent_chessman = chessman
+        self.recent_position = Point(x0, y0)
         return chessman.move(x1, y1)
 
     def move_action_str(self, action):
@@ -303,16 +311,65 @@ class Chessboard(object):
                 else:
                     count += 1
 
-    def print_to_cl(self, is_print = True):
+    def print_to_cl(self, is_print = True, holding_chessman=None):
+        PADDING = 7
+        SP = " "
+        
         screen = "\r\n"
-        for i in range(9, -1, -1):
-            for j in range(9):
-                if self.__chessmans[j][i] != None:
-                    screen += self.__chessmans[j][i].name_cn
+
+        number_row = SP * PADDING + "".join([str(i).center(PADDING-1, SP) for i in range(9)]) + SP * PADDING + "\n"
+        screen += number_row
+        screen += "\r\n" * 2
+
+        y_range = range(10) if self.upside_down else range(9, -1, -1)
+
+        for y in y_range:
+            row_number = str(y).center(PADDING, SP)
+            screen += row_number
+
+            for x in range(9):
+                chessman = self.__chessmans[x][y]
+
+                is_in_moving_list = False
+                if holding_chessman:
+                    is_in_moving_list = Point(x, y) in holding_chessman.moving_list
+                    
+                if chessman:
+                    piece_name = chessman.name_cn
+                    pos_name = f"{x}{piece_name}{y}"
+                    piece_name = pos_name.center(PADDING-2, SP)
+                    
+                    attrs = ['underline'] if chessman == self.recent_chessman else None
+
+                    color = chessman.color if not is_in_moving_list else holding_chessman.second_color
+                    piece_name = colored(piece_name, color)
+                    piece_name = piece_name.replace(pos_name, colored(pos_name, attrs=attrs))
+
+                    screen += piece_name
                 else:
-                    screen += "   .   "
+                    empty_space = "•"
+                    is_recent_position = self.recent_position == Point(x, y)
+                    should_print_position = is_recent_position or is_in_moving_list
+
+                    empty_space = f"{x}•{y}" if should_print_position else " • "
+                    empty_space = empty_space.center(PADDING-1, SP)
+                    
+                    if should_print_position:
+                        chessman = self.recent_chessman if is_recent_position else holding_chessman 
+                        empty_space = colored(empty_space, chessman.second_color)
+                    
+                    if is_recent_position:
+                        self.recent_position = Point(-1, -1)
+
+                    screen += empty_space
+            
+            screen += row_number
             screen += "\r\n" * 3
+
+        screen += number_row
+
         if is_print:
+            print('\b' * len(screen) * 2)
             print(screen)
         else:
             self.__screen = screen
@@ -363,7 +420,7 @@ class Chessboard(object):
         has_two, mark = self.check_two_chesses_in_one_row(chess, old_x, old_y)
         if has_two:
             self.record += mark
-        self.record += chess.name_cn[1]
+        self.record += chess.name_cn
         # horizontal move
         if old_y == y:
             if not self.is_red_turn:
@@ -480,7 +537,7 @@ class Chessboard(object):
         has_two, mark = self.check_two_chesses_in_one_row(chess, old_x, old_y)
         if has_two:
             record += mark
-        record += chess.name_cn[1]
+        record += chess.name_cn
         # horizontal move
         if old_y == y:
             if not self.is_red_turn:
